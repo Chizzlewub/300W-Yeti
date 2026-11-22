@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>IT Support Portal</title>
+    <style>
+        body { margin: 0; font: 1rem/1.5 system-ui, sans-serif; background: #f4f6fa; color: #15243d; }
+        main { max-width: 58rem; margin: 3rem auto; padding: 0 1rem; }
+        section { background: white; border: 1px solid #dbe2ec; border-radius: .75rem; padding: 1.25rem; margin: 1rem 0; }
+        h1, h2 { line-height: 1.2; }
+        h2 { margin-top: 0; }
+        label { display: block; font-weight: 600; margin-top: 1rem; }
+        textarea, select, button { font: inherit; padding: .5rem; border-radius: .35rem; }
+        textarea, select { border: 1px solid #69788c; }
+        textarea { width: 100%; box-sizing: border-box; resize: vertical; }
+        button { display: block; margin-top: 1rem; padding: .55rem 1rem; background: #194494; color: white; border: 0; cursor: pointer; }
+        .table-scroll { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: .65rem; border-bottom: 1px solid #dbe2ec; vertical-align: top; }
+        th { background: #eef3fa; }
+        .description { white-space: pre-wrap; overflow-wrap: anywhere; min-width: 8rem; }
+        .error { color: #9f2525; }
+        .success { color: #17613a; }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>IT Support Portal</h1>
+        <section aria-labelledby="submit-heading">
+            <h2 id="submit-heading">Submit a support ticket</h2>
+            {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+            {% if submitted %}<p class="success" role="status">Ticket submitted.</p>{% endif %}
+            <form method="post" action="{{ url_for('submit_ticket') }}">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" rows="4" maxlength="{{ max_description_length }}" required>{{ description }}</textarea>
+                <label for="priority">Priority</label>
+                <select id="priority" name="priority" required>
+                    {% for option in priorities %}
+                    <option value="{{ option }}"{% if option == priority %} selected{% endif %}>{{ option }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Submit ticket</button>
+            </form>
+        </section>
+        <section aria-labelledby="tickets-heading">
+            <h2 id="tickets-heading">Support tickets</h2>
+            {% if tickets is none %}
+            <p class="error" role="alert">Tickets are temporarily unavailable.</p>
+            {% elif tickets %}
+            <div class="table-scroll">
+                <table aria-labelledby="tickets-heading">
+                    <thead><tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Priority</th>
+                        <th scope="col">Status</th>
+                    </tr></thead>
+                    <tbody>
+                        {% for ticket in tickets %}
+                        <tr>
+                            <td>{{ ticket.ticket_id }}</td>
+                            <td class="description">{{ ticket.description }}</td>
+                            <td>{{ ticket.priority or '—' }}</td>
+                            <td>{{ ticket.status or '—' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p>No tickets have been submitted yet.</p>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>
