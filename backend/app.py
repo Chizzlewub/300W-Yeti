@@ -1,9 +1,23 @@
 import os
+import secrets
 import psycopg
+
 from psycopg.rows import dict_row
-from flask import Flask, jsonify, render_template_string
+from flask import Flask, jsonify, render_template_string, request
 
 app = Flask(__name__)
+def require_api_key():
+    expected_key = os.environ.get("TICKETING_API_KEY")
+
+    if not expected_key:
+        return jsonify({"error": "API authentication is not configured"}), 503
+
+    provided_key = request.headers.get("X-API-Key", "")
+
+    if not secrets.compare_digest(provided_key, expected_key):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    return None
 
 def get_tickets():
     with psycopg.connect(
@@ -23,6 +37,11 @@ def get_tickets():
 
 @app.route("/api/tickets")
 def api_tickets():
+    auth_error = require_api_key()
+
+    if auth_error is not None:
+        return auth_error
+
     return jsonify(get_tickets())
 
 @app.route("/tickets")
